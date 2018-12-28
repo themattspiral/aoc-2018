@@ -3,16 +3,17 @@ const fs = require('fs');
 // const rawInput = fs.readFileSync('./small_input.txt', 'utf8');
 const rawInput = fs.readFileSync('./input.txt', 'utf8');
 const lines = rawInput.split(/\n/);
-const claimRegex = /#\d+ @ (\d+),(\d+): (\d+)x(\d+)/;
+const claimRegex = /#(\d+) @ (\d+),(\d+): (\d+)x(\d+)/;
 
 function fromClaimStringToParsedRect(claimString) {
   const matches = claimRegex.exec(claimString);
-  const left = parseInt(matches[1]);
-  const top = parseInt(matches[2]);
-  const width = parseInt(matches[3]);
-  const height = parseInt(matches[4]);
+  const left = parseInt(matches[2]);
+  const top = parseInt(matches[3]);
+  const width = parseInt(matches[4]);
+  const height = parseInt(matches[5]);
   return {
-    claim: matches[0],
+    claimStr: matches[0],
+    claimId: matches[1],
     left,
     top,
     width,
@@ -57,18 +58,37 @@ function overlappingRect(claimRectA, claimRectB) {
 
 const parsedClaimRects = lines.map(fromClaimStringToParsedRect);
 const overlappingSquaresMap = {};
+const nonOverlappingClaims = {};
+const overlappingClaims = {};
 
 // compare each claim rect with all the ones after it so that all pairs are compared.
 // (i'm not crazy about this nested loop, but haven't thought of a better way)
 for (let i = 0; i < parsedClaimRects.length; i++) {
   for (let j = i + 1; j < parsedClaimRects.length; j++) {
     const overlap = overlappingRect(parsedClaimRects[i], parsedClaimRects[j]);
+
     if (overlap) {
       Object.keys(mapAllSquaresInRect(overlap)).forEach(square => {
         overlappingSquaresMap[square] = true;
       });
+
+      delete nonOverlappingClaims[parsedClaimRects[i].claimId];
+      delete nonOverlappingClaims[parsedClaimRects[j].claimId];
+      overlappingClaims[parsedClaimRects[i].claimId] = true;
+      overlappingClaims[parsedClaimRects[j].claimId] = true;
+    } else {
+      if (!overlappingClaims[parsedClaimRects[i].claimId]) {
+        nonOverlappingClaims[parsedClaimRects[i].claimId] = true;
+      }
+      if (!overlappingClaims[parsedClaimRects[j].claimId]) {
+        nonOverlappingClaims[parsedClaimRects[j].claimId] = true;
+      }
     }
   }
 }
 
-console.log(Object.keys(overlappingSquaresMap).length);
+console.log('Star 1: Unique overlapping square inches:', Object.keys(overlappingSquaresMap).length);
+console.log('Star 2: Non-Overlapping Claim IDs:');
+Object.keys(nonOverlappingClaims).forEach(claim => {
+  console.log(`  ${claim}`);
+});

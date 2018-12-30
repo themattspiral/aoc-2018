@@ -1,0 +1,11 @@
+{
+  "name": "aoc-2018",
+  "version": "1.0.0",
+  "license": "MIT",
+  "repository": "github:themattspiral/aoc-2018",
+  "scripts": {},
+  "devDependencies": {},
+  "dependencies": {
+    "moment": "^2.23.0"
+  }
+}

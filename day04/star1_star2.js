@@ -132,15 +132,35 @@ function getMinuteWithMaxCount(minuteHistogram) {
   }, {
     minute: null,
     count: 0
-  }).minute;
+  });
 }
 
 const shiftEvents = lines.map(fromRecordStringToShiftEvent).sort(compareTimestamp);
 const sleepIntervalsByGuard = bucketSleepIntervalsBuGuard(shiftEvents);
+let overallMaxMinuteCount = {
+  guard: null,
+  minuteWithMaxCount: {
+    minute: null,
+    count: 0
+  }
+};
+Object.keys(sleepIntervalsByGuard).forEach(guard => {
+  sleepIntervalsByGuard[guard].minuteHistogram = minuteHistogramForIntervals(sleepIntervalsByGuard[guard].intervals);
+  sleepIntervalsByGuard[guard].minuteWithMaxCount = getMinuteWithMaxCount(sleepIntervalsByGuard[guard].minuteHistogram);
+  if (sleepIntervalsByGuard[guard].minuteWithMaxCount.count > overallMaxMinuteCount.minuteWithMaxCount.count) {
+    overallMaxMinuteCount.guard = guard;
+    overallMaxMinuteCount.minuteWithMaxCount = sleepIntervalsByGuard[guard].minuteWithMaxCount;
+  }
+});
 const sleepiestGuard = findSleepiestGuard(sleepIntervalsByGuard);
-const minuteHistogram = minuteHistogramForIntervals(sleepIntervalsByGuard[sleepiestGuard].intervals);
-const minute = getMinuteWithMaxCount(minuteHistogram);
+const sleepiestGuardsSleepiestMinute = sleepIntervalsByGuard[sleepiestGuard].minuteWithMaxCount.minute;
 
-console.log(`Sleepiest Guard: #${sleepiestGuard}`);
-console.log(`Minute: ${minute}`);
-console.log(`${sleepiestGuard} * ${minute} = ${parseInt(sleepiestGuard) * minute}`);
+console.log(`Star 1:`);
+console.log(`  Sleepiest Guard: #${sleepiestGuard}`);
+console.log(`  #${sleepiestGuard}'s Sleepiest Minute: ${sleepiestGuardsSleepiestMinute}`);
+console.log(`  ${sleepiestGuard} * ${sleepiestGuardsSleepiestMinute} = ${parseInt(sleepiestGuard) * sleepiestGuardsSleepiestMinute}`);
+console.log(`Star 2:`);
+console.log(`  Overall max minute count: ${overallMaxMinuteCount.minuteWithMaxCount.count}`);
+console.log(`  Minute with this count: ${overallMaxMinuteCount.minuteWithMaxCount.minute}`);
+console.log(`  Guard with this minute count: #${overallMaxMinuteCount.guard}`);
+console.log(`  ${overallMaxMinuteCount.guard} * ${overallMaxMinuteCount.minuteWithMaxCount.minute} = ${parseInt(overallMaxMinuteCount.guard) * overallMaxMinuteCount.minuteWithMaxCount.minute}`);

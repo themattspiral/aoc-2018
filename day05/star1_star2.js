@@ -57,5 +57,41 @@ function reactPolymer(polymerArray) {
   return reducedCount;
 }
 
+function getUniqueCharsMap(polymerArray) {
+  return polymerArray.reduce((unique, char) => {
+    unique[char.toLowerCase()] = true;
+    return unique;
+  }, {});
+}
+
+function removeCharsAndReactPolymers(charsToRemoveMap, originalPolymerString) {
+  Object.keys(charsToRemoveMap).forEach(char => {
+    const modifiedPolymer = originalPolymerString.replace(new RegExp(char, 'gi'), '');
+    const reducedCount = reactPolymer(Array.from(modifiedPolymer));
+    charsToRemoveMap[char] = modifiedPolymer.length - reducedCount;
+  });
+}
+
+function getMinCharByPolymerLength(uniqueCharsMap) {
+  return Object.keys(uniqueCharsMap).reduce((min, char) => {
+    if (uniqueCharsMap[char] < min.length) {
+      return {
+        char: char,
+        length: uniqueCharsMap[char]
+      };
+    } else {
+      return min;
+    }
+  }, {
+    char: null,
+    length: Number.MAX_SAFE_INTEGER
+  });
+}
+
 const reducedCount = reactPolymer(Array.from(rawInput));
-console.log(rawInput.length - reducedCount);
+console.log(`Star 1 - Reacted polymer length: ${rawInput.length - reducedCount}`);
+
+const uniqueCharsMap = getUniqueCharsMap(Array.from(rawInput));
+removeCharsAndReactPolymers(uniqueCharsMap, rawInput);
+const minChar = getMinCharByPolymerLength(uniqueCharsMap);
+console.log(`Star 2 - Shortest Polymer after removing a unit on one type: ${minChar.length} (for unit '${minChar.char}')`);

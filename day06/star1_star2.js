@@ -79,18 +79,18 @@ function findExtremesAndEdgeCoords(coords) {
 }
 
 function mapAllPointsForBounds(x1, y1, x2, y2) {
-  const squares = {};
+  const points = {};
 
   for (let x = x1; x <= x2; x++) {
     for (let y = y1; y <= y2; y++) {
-      squares[x + ',' + y] = {
+      points[x + ',' + y] = {
         x,
         y
       };
     }
   }
 
-  return squares;
+  return points;
 }
 
 function taxicabDistance(coord1, coord2) {
@@ -164,13 +164,31 @@ function filterInvalidCoords(pointsByCoord, extremes) {
   return pointsByValidCoord;
 }
 
+function pointsWithTaxicabDistanceSumToAllCoordsBelowLimit(allPoints, coords, distanceSumLimit) {
+  const points = [];
+
+  Object.values(allPoints).forEach(point => {
+    const distanceSum = coords.reduce((sum, coord) => sum + taxicabDistance(coord, point), 0);
+
+    if (distanceSum < distanceSumLimit) {
+      points.push(point);
+    }
+  });
+
+  return points;
+}
+
 const parsedCoords = lines.map(fromInputStringToCoords);
 const extremes = findExtremesAndEdgeCoords(parsedCoords);
 const allPoints = mapAllPointsForBounds(
   extremes.minXandCoords.value, extremes.minYandCoords.value,
   extremes.maxXandCoords.value, extremes.maxYandCoords.value
 );
+
 const closestPointsByCoord = calcTaxicabDistanceAndBucketByClosetCoord(allPoints, parsedCoords);
 const closestPointsByValidCoord = filterInvalidCoords(closestPointsByCoord, extremes);
 const largestValidArea = getMaxPointsCount(closestPointsByValidCoord);
 console.log(`Star 1 - Size of largest valid area: ${largestValidArea}`);
+
+const regionPoints = pointsWithTaxicabDistanceSumToAllCoordsBelowLimit(allPoints, parsedCoords, 10000);
+console.log(`Star 2 - Size of region where sum of each loc's dist to all coords < 10k: ${regionPoints.length}`);

@@ -54,6 +54,25 @@ function sumTreeMetadata(node) {
   return nodeMetaSum + childMetaSum;
 }
 
+function nodeValue(node) {
+  if (node.childNodes.length === 0) {
+    return node.metadataEntries.reduce((sum, metadataEntry) => sum + metadataEntry, 0);
+  } else {
+    return node.metadataEntries.reduce((value, metadataEntry) => {
+      const childIndex = metadataEntry - 1;
+
+      if (childIndex >= 0 && childIndex < node.childNodes.length) {
+        return value + nodeValue(node.childNodes[childIndex]);
+      } else {
+        return value;
+      }
+    }, 0);
+  }
+}
+
 const root = buildTree(numbers);
 const sum = sumTreeMetadata(root);
 console.log(`Star 1 - Sum of tree metadata: ${sum}`);
+
+const rootValue = nodeValue(root);
+console.log(`Star 2 - Root node's value: ${rootValue}`);

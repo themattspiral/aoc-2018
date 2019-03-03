@@ -5,8 +5,6 @@ const rawInput = fs.readFileSync('./input.txt', 'utf8');
 const lines = rawInput.split(/\n/);
 const marbleRegex = /(\d+) players; last marble is worth (\d+) points/;
 
-const DEBUG = false;
-
 function fromInputStringToGameParams(inputString) {
   if (!inputString.startsWith('#')) {
     const matches = marbleRegex.exec(inputString);
@@ -15,18 +13,6 @@ function fromInputStringToGameParams(inputString) {
       lastMarbleValue: parseInt(matches[2]) * 100  // STAR 2 MULTIPLIER
     };
   }
-}
-
-function printCircle(firstMarble, currentMarble, playerIndex) {
-  let str = `[${playerIndex + 1}]  `;
-  let marbleToPrint = firstMarble;
-
-  do {
-    str += (marbleToPrint.value === currentMarble.value) ? ` (${marbleToPrint.value})` : ` ${marbleToPrint.value}`;
-    marbleToPrint = marbleToPrint.nextMarble;
-  } while (marbleToPrint.value !== firstMarble.value);
-
-  console.log(str);
 }
 
 function addToCircleAfterClockwiseNeighbor(currentMarble, newMarbleValue) {
@@ -82,20 +68,16 @@ function playMarbles(playerCount, lastMarbleValue) {
     if (marbleToPlay % 23 === 0) {
       // accumulate score for the current player
       playerScores[currentPlayerIndex] += marbleToPlay;
-      if (DEBUG) console.log(`scoring marbleToPlay (multiple of 23): ${marbleToPlay}`);
 
       const info = removeSeventhCounterClockwiseFromCircle(currentMarble);
 
-      // add marble to remove to score also
+      // add removed marble's value to score also
       playerScores[currentPlayerIndex] += info.removedMarble.value;
-      if (DEBUG) console.log(`scoring marble to remove: ${info.removedMarble.value}`);
 
       currentMarble = info.currentMarble;
     } else {
       currentMarble = addToCircleAfterClockwiseNeighbor(currentMarble, marbleToPlay);
     }
-
-    if (DEBUG) printCircle(firstMarble, currentMarble, currentPlayerIndex);
 
     // update to the next player
     currentPlayerIndex++;
@@ -108,17 +90,7 @@ function playMarbles(playerCount, lastMarbleValue) {
 }
 
 function maxScore(scores) {
-  let maxScore = 0;
-  let maxScoreIndex = -1;
-
-  for (let i=0; i < scores.length; i++) {
-    if (scores[i] > maxScore) {
-      maxScore = scores[i];
-      maxScoreIndex = i;
-    }
-  }
-
-  return maxScore;
+  return scores.reduce((max, score) => score > max ? score : max, 0);
 }
 
 const gameParams = lines.map(fromInputStringToGameParams).filter(p => !!p);
